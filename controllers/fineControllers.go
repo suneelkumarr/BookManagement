@@ -91,11 +91,39 @@ func CreateFine() gin.HandlerFunc {
 	}
 }
 
-// func GetFines() gin.HandlerFunc {
-// 	return func(c *gin.Context) {
-// 		db := database.Database()
-// 	}
-// }
+func GetFines() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		db := database.Database()
+
+		// Fetch all fines from the database
+		query := "SELECT FineID, NameOfFine, FineAmount FROM FineTable"
+		rows, err := db.Query(query)
+		if err != nil {
+			log.Printf("fetch fines: %v", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch fines"})
+			return
+		}
+		defer rows.Close()
+
+		// Create a slice to hold the fetched fines
+		var fines []Fine
+
+		// Iterate over the rows and populate the fines slice
+		for rows.Next() {
+			var fine Fine
+			err := rows.Scan(&fine.FineID, &fine.NameOfFine, &fine.FineAmount)
+			if err != nil {
+				log.Printf("scan fine: %v", err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to scan fine"})
+				return
+			}
+			fines = append(fines, fine)
+		}
+
+		// Return the fetched fines
+		c.JSON(http.StatusOK, fines)
+	}
+}
 
 // func GetFineById() gin.HandlerFunc {
 // 	return func(c *gin.Context) {

@@ -10,7 +10,7 @@ func FineRoutes(router *gin.Engine) {
 	fineGroup := router.Group("/fine")
 	{
 		fineGroup.POST("", controllers.CreateFine())
-		// fineGroup.GET("", controllers.GetFines())
+		fineGroup.GET("", controllers.GetFines())
 		// fineGroup.GET("/:id", controllers.GetFineById())
 		// fineGroup.PUT("/:id", controllers.UpdateFineById())
 	}
