@@ -20,6 +20,7 @@ func main() {
 	routes.BookRoutes(router)
 	routes.FineRoutes(router)
 	routes.OrderBookRoutes(router)
+	routes.FineBookRoutes(router)
 
 	router.Run(":" + port)
 
