@@ -158,8 +158,50 @@ func GetFineById() gin.HandlerFunc {
 	}
 }
 
-// func UpdateFineById() gin.HandlerFunc {
-// 	return func(c *gin.Context) {
-// 		db := database.Database()
-// 	}
-// }
+func UpdateFineById() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		db := database.Database()
+
+		// Get the fine ID from the URL parameters
+		idStr := c.Param("id")
+		id, err := strconv.Atoi(idStr)
+		if err != nil {
+			log.Printf("invalid fine ID: %v", err)
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid fine ID"})
+			return
+		}
+
+		// Parse the request body into a Fine struct
+		var updatedFine Fine
+		if err := c.ShouldBindJSON(&updatedFine); err != nil {
+			log.Printf("invalid request body: %v", err)
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid request body"})
+			return
+		}
+
+		// Update the fine in the database
+		query := "UPDATE FineTable SET NameOfFine = ?, FineAmount = ? WHERE FineID = ?"
+		_, err = db.Exec(query, updatedFine.NameOfFine, updatedFine.FineAmount, id)
+		if err != nil {
+			log.Printf("update fine %d: %v", id, err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to update fine"})
+			return
+		}
+
+		// Return the updated fine
+		query = "SELECT FineID, NameOfFine, FineAmount FROM FineTable WHERE FineID = ?"
+		var fine Fine
+		err = db.QueryRow(query, id).Scan(&fine.FineID, &fine.NameOfFine, &fine.FineAmount)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				c.JSON(http.StatusNotFound, gin.H{"error": "fine not found"})
+			} else {
+				log.Printf("fetch fine %d: %v", id, err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch fine"})
+			}
+		}
+
+		// Return the updated fine
+		c.JSON(http.StatusOK, fine)
+	}
+}
