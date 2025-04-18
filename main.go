@@ -19,6 +19,7 @@ func main() {
 	// router.Use(middleware.Authentication())
 	routes.BookRoutes(router)
 	routes.FineRoutes(router)
+	routes.OrderBookRoutes(router)
 
 	router.Run(":" + port)
 
