@@ -11,7 +11,7 @@ func FineRoutes(router *gin.Engine) {
 	{
 		fineGroup.POST("", controllers.CreateFine())
 		fineGroup.GET("", controllers.GetFines())
-		// fineGroup.GET("/:id", controllers.GetFineById())
+		fineGroup.GET("/:id", controllers.GetFineById())
 		// fineGroup.PUT("/:id", controllers.UpdateFineById())
 	}
 }

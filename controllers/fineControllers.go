@@ -5,6 +5,7 @@ import (
 	database "go-crud-api/config"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -125,11 +126,37 @@ func GetFines() gin.HandlerFunc {
 	}
 }
 
-// func GetFineById() gin.HandlerFunc {
-// 	return func(c *gin.Context) {
-// 		db := database.Database()
-// 	}
-// }
+func GetFineById() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		db := database.Database()
+
+		// Get the fine ID from the URL parameters
+		idStr := c.Param("id")
+		id, err := strconv.Atoi(idStr)
+		if err != nil {
+			log.Printf("invalid fine ID: %v", err)
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid fine ID"})
+			return
+		}
+
+		// Fetch the fine from the database
+		query := "SELECT FineID, NameOfFine, FineAmount FROM FineTable WHERE FineID = ?"
+		var fine Fine
+		err = db.QueryRow(query, id).Scan(&fine.FineID, &fine.NameOfFine, &fine.FineAmount)
+		if err != nil {
+			if err == sql.ErrNoRows {
+				c.JSON(http.StatusNotFound, gin.H{"error": "fine not found"})
+			} else {
+				log.Printf("fetch fine %d: %v", id, err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to fetch fine"})
+			}
+			return
+		}
+
+		// Return the fetched fine
+		c.JSON(http.StatusOK, fine)
+	}
+}
 
 // func UpdateFineById() gin.HandlerFunc {
 // 	return func(c *gin.Context) {
